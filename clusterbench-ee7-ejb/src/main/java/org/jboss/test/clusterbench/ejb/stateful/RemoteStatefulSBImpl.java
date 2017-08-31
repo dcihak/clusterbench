@@ -16,15 +16,47 @@
 
 package org.jboss.test.clusterbench.ejb.stateful;
 
-import javax.ejb.Stateful;
-
 import org.jboss.test.clusterbench.common.ejb.CommonStatefulSBImpl;
+
+import javax.ejb.EJBException;
+import javax.ejb.SessionSynchronization;
+import javax.ejb.Stateful;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Radoslav Husar
  * @version Dec 2011
  */
 @Stateful
-public class RemoteStatefulSBImpl extends CommonStatefulSBImpl implements RemoteStatefulSB {
-    // Inherit.
+public class RemoteStatefulSBImpl extends CommonStatefulSBImpl implements RemoteStatefulSB, SessionSynchronization {
+
+    private static final Logger LOGGER = Logger.getLogger(RemoteStatefulSBImpl.class.getName());
+
+    @Override
+    public void afterBegin() throws EJBException, RemoteException {
+
+    }
+
+    @Override
+    public void beforeCompletion() throws EJBException, RemoteException {
+
+    }
+
+    /**
+     * Methods getSerial and getSerialAndIncrement do not perform transactional operation so we need to check if transactions on this EJB were successfully committed.
+     *
+     * @param committed
+     * @throws EJBException
+     * @throws RemoteException
+     */
+    @Override
+    public void afterCompletion(boolean committed) throws EJBException, RemoteException {
+        if (committed) {
+            LOGGER.log(Level.INFO, "Transaction committed successfully.");
+        } else {
+            LOGGER.log(Level.SEVERE, "Transaction of the stateful bean RemoteStatefulSBImpl was not successfully committed!");
+        }
+    }
 }
